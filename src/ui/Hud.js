@@ -1,5 +1,6 @@
 import { FEATURES, STATUS } from '../data/features.js';
 import { DISCLAIMER } from '../config.js';
+import { posthog, presentationLogger } from '../posthog.js';
 
 const $ = (id) => globalThis.document?.getElementById(id);
 
@@ -25,7 +26,13 @@ export class Hud {
     this.el.text.textContent = 'Готово';
     this.el.start.hidden = false;
     this.el.start.focus();
-    this.el.start.onclick = () => { this.el.start.hidden = true; this.el.loader.classList.add('done'); onClick(); };
+    this.el.start.onclick = () => {
+      this.el.start.hidden = true;
+      this.el.loader.classList.add('done');
+      posthog?.capture('presentation_started');
+      presentationLogger.info('presentation started', { entry_point: 'start_button' });
+      onClick();
+    };
   }
 
   /** Бейдж статуса: что в кадре — реальная функция, ссылка на сервис или концепт. */
