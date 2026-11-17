@@ -1,0 +1,959 @@
+{
+  "when": "2026-11-17T01:31:46.339Z",
+  "mode": "программный SwiftShader (FPS не показателен)",
+  "viewport": "1280x720",
+  "env": {
+    "webgl2": true,
+    "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+    "three": "ok"
+  },
+  "loadMs": 535,
+  "requestCount": 25,
+  "errors": {
+    "consoleErrors": [],
+    "consoleWarnings": [],
+    "consoleInfoLog": [
+      "[quality] 32 FPS → pixelRatio 0.85",
+      "[quality] 13 FPS → pixelRatio 0.75"
+    ],
+    "pageErrors": [],
+    "http4xx5xx": [],
+    "failedRequests": [],
+    "shaderErrors": [],
+    "deprecations": [],
+    "errorsBeforeStartClick": {
+      "console": 0,
+      "bad": 0
+    }
+  },
+  "assets": {
+    "manifestKeys": 29,
+    "missingReported": [],
+    "loaderErrors": []
+  },
+  "performance": {
+    "frames": 1133,
+    "seconds": 60,
+    "pixelRatioAtEnd": 0.75,
+    "fpsAvgAll": 12.847883106963168,
+    "fpsFirstThird": 13.508042122159997,
+    "fpsLastThird": 12.30743114204473,
+    "fpsMin": 0.9164222873900317,
+    "frameMs": {
+      "p50": 73.39999999999418,
+      "p95": 136.6999999999971,
+      "p99": 229.5,
+      "max": 1091.199999999997
+    },
+    "drawCalls": {
+      "min": 0,
+      "max": 12
+    },
+    "triangles": {
+      "min": 0,
+      "max": 1268
+    },
+    "jsHeapMB": {
+      "first": 10.26511287689209,
+      "last": 12.96166706085205
+    },
+    "fpsBySceneTime": {
+      "0-4s": 13.09552294788303,
+      "4-10s": 13.077664982917309,
+      "10-14s": 12.483303581459802,
+      "14-20s": 11.713144319900703,
+      "20-26s": 13.092851216814195
+    }
+  },
+  "camera": {
+    "windowSec": 0.25,
+    "maxSpeed_mps": 2.8695950644208756,
+    "maxAccel_mps2": 0.4974440628739281,
+    "jumpsOver40mps": 0,
+    "maxRoll_rad": 4.163336342344337e-17,
+    "minHeight": 3.6000129567664234,
+    "minDistToCardCenter": 3.5421791987847895
+  },
+  "loops": {
+    "maxRafCallbacksPerFrame": 2,
+    "note": "норма: 2 (цикл three + тикер gsap); больше — возможны дубли циклов"
+  },
+  "restarts": [
+    {
+      "n": 0,
+      "geo": 9,
+      "tex": 3,
+      "prog": 8,
+      "heap": 9510111,
+      "gsapChildren": 25,
+      "rafMax": 2
+    },
+    {
+      "n": 1,
+      "geo": 9,
+      "tex": 3,
+      "prog": 8,
+      "heap": 9867603,
+      "gsapChildren": 25,
+      "rafMax": 2
+    },
+    {
+      "n": 2,
+      "geo": 9,
+      "tex": 3,
+      "prog": 8,
+      "heap": 13558577,
+      "gsapChildren": 25,
+      "rafMax": 2
+    },
+    {
+      "n": 3,
+      "geo": 9,
+      "tex": 3,
+      "prog": 8,
+      "heap": 15649113,
+      "gsapChildren": 25,
+      "rafMax": 2
+    },
+    {
+      "n": 4,
+      "geo": 9,
+      "tex": 3,
+      "prog": 8,
+      "heap": 11905296,
+      "gsapChildren": 25,
+      "rafMax": 2
+    },
+    {
+      "n": 5,
+      "geo": 9,
+      "tex": 3,
+      "prog": 8,
+      "heap": 14065885,
+      "gsapChildren": 25,
+      "rafMax": 2
+    },
+    {
+      "n": 6,
+      "geo": 9,
+      "tex": 3,
+      "prog": 8,
+      "heap": 16984153,
+      "gsapChildren": 25,
+      "rafMax": 2
+    },
+    {
+      "n": 7,
+      "geo": 9,
+      "tex": 3,
+      "prog": 8,
+      "heap": 10802492,
+      "gsapChildren": 25,
+      "rafMax": 2
+    },
+    {
+      "n": 8,
+      "geo": 9,
+      "tex": 3,
+      "prog": 8,
+      "heap": 13637109,
+      "gsapChildren": 25,
+      "rafMax": 2
+    }
+  ],
+  "samplesEverySec": [
+    {
+      "el": 0.4,
+      "fps": 0,
+      "calls": 4,
+      "geo": 4,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 0.8,
+      "fps": 0,
+      "calls": 4,
+      "geo": 4,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 1.7,
+      "fps": 0,
+      "calls": 4,
+      "geo": 4,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 2.3,
+      "fps": 31.7,
+      "calls": 4,
+      "geo": 4,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 3.3,
+      "fps": 31.7,
+      "calls": 4,
+      "geo": 4,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 4.1,
+      "fps": 13.1,
+      "calls": 4,
+      "geo": 4,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 5.2,
+      "fps": 13.1,
+      "calls": 4,
+      "geo": 4,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 6.2,
+      "fps": 13.9,
+      "calls": 4,
+      "geo": 4,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 7.2,
+      "fps": 13.9,
+      "calls": 4,
+      "geo": 4,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 8.2,
+      "fps": 14,
+      "calls": 4,
+      "geo": 4,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 9.2,
+      "fps": 14,
+      "calls": 4,
+      "geo": 4,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 10.1,
+      "fps": 12.8,
+      "calls": 4,
+      "geo": 4,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 11.2,
+      "fps": 12.8,
+      "calls": 4,
+      "geo": 4,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 12.2,
+      "fps": 12.9,
+      "calls": 4,
+      "geo": 4,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 13.2,
+      "fps": 12.9,
+      "calls": 4,
+      "geo": 4,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 14.1,
+      "fps": 12.1,
+      "calls": 7,
+      "geo": 7,
+      "tex": 1,
+      "prog": 7,
+      "gsap": 25
+    },
+    {
+      "el": 15,
+      "fps": 12.1,
+      "calls": 8,
+      "geo": 8,
+      "tex": 2,
+      "prog": 8,
+      "gsap": 25
+    },
+    {
+      "el": 15.9,
+      "fps": 12.1,
+      "calls": 12,
+      "geo": 9,
+      "tex": 3,
+      "prog": 8,
+      "gsap": 25
+    },
+    {
+      "el": 16.8,
+      "fps": 14,
+      "calls": 12,
+      "geo": 9,
+      "tex": 3,
+      "prog": 8,
+      "gsap": 25
+    },
+    {
+      "el": 17.8,
+      "fps": 14,
+      "calls": 10,
+      "geo": 9,
+      "tex": 3,
+      "prog": 8,
+      "gsap": 25
+    },
+    {
+      "el": 18.8,
+      "fps": 11.9,
+      "calls": 8,
+      "geo": 9,
+      "tex": 3,
+      "prog": 8,
+      "gsap": 25
+    },
+    {
+      "el": 19.7,
+      "fps": 11.9,
+      "calls": 12,
+      "geo": 10,
+      "tex": 4,
+      "prog": 8,
+      "gsap": 25
+    },
+    {
+      "el": 20.8,
+      "fps": 11.7,
+      "calls": 12,
+      "geo": 10,
+      "tex": 4,
+      "prog": 8,
+      "gsap": 25
+    },
+    {
+      "el": 21.8,
+      "fps": 11.7,
+      "calls": 12,
+      "geo": 10,
+      "tex": 4,
+      "prog": 8,
+      "gsap": 25
+    },
+    {
+      "el": 22.8,
+      "fps": 14.1,
+      "calls": 11,
+      "geo": 10,
+      "tex": 4,
+      "prog": 8,
+      "gsap": 25
+    },
+    {
+      "el": 23.8,
+      "fps": 14.1,
+      "calls": 8,
+      "geo": 10,
+      "tex": 4,
+      "prog": 8,
+      "gsap": 25
+    },
+    {
+      "el": 24.8,
+      "fps": 14.6,
+      "calls": 8,
+      "geo": 10,
+      "tex": 4,
+      "prog": 8,
+      "gsap": 25
+    },
+    {
+      "el": 25.8,
+      "fps": 14.6,
+      "calls": 8,
+      "geo": 10,
+      "tex": 4,
+      "prog": 8,
+      "gsap": 25
+    },
+    {
+      "el": 0.2,
+      "fps": 15.8,
+      "calls": 4,
+      "geo": 7,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 26
+    },
+    {
+      "el": 1.2,
+      "fps": 15.8,
+      "calls": 4,
+      "geo": 7,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 2,
+      "fps": 13.5,
+      "calls": 4,
+      "geo": 7,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 3,
+      "fps": 13.5,
+      "calls": 4,
+      "geo": 7,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 4,
+      "fps": 14.8,
+      "calls": 4,
+      "geo": 7,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 5,
+      "fps": 14.8,
+      "calls": 4,
+      "geo": 7,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 6.1,
+      "fps": 14.8,
+      "calls": 4,
+      "geo": 7,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 7,
+      "fps": 14.8,
+      "calls": 4,
+      "geo": 7,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 8,
+      "fps": 14.8,
+      "calls": 4,
+      "geo": 7,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 9,
+      "fps": 12.1,
+      "calls": 4,
+      "geo": 7,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 10,
+      "fps": 12.1,
+      "calls": 4,
+      "geo": 7,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 11,
+      "fps": 11.6,
+      "calls": 4,
+      "geo": 7,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 12,
+      "fps": 11.6,
+      "calls": 4,
+      "geo": 7,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 13,
+      "fps": 12.4,
+      "calls": 4,
+      "geo": 7,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 14,
+      "fps": 12.4,
+      "calls": 7,
+      "geo": 7,
+      "tex": 1,
+      "prog": 7,
+      "gsap": 25
+    },
+    {
+      "el": 14.9,
+      "fps": 12.8,
+      "calls": 7,
+      "geo": 7,
+      "tex": 1,
+      "prog": 7,
+      "gsap": 25
+    },
+    {
+      "el": 15.8,
+      "fps": 12.8,
+      "calls": 12,
+      "geo": 9,
+      "tex": 3,
+      "prog": 8,
+      "gsap": 25
+    },
+    {
+      "el": 16.7,
+      "fps": 12.7,
+      "calls": 12,
+      "geo": 9,
+      "tex": 3,
+      "prog": 8,
+      "gsap": 25
+    },
+    {
+      "el": 17.6,
+      "fps": 12.7,
+      "calls": 12,
+      "geo": 9,
+      "tex": 3,
+      "prog": 8,
+      "gsap": 25
+    },
+    {
+      "el": 18.5,
+      "fps": 12.2,
+      "calls": 8,
+      "geo": 9,
+      "tex": 3,
+      "prog": 8,
+      "gsap": 25
+    },
+    {
+      "el": 19.6,
+      "fps": 12.2,
+      "calls": 12,
+      "geo": 10,
+      "tex": 4,
+      "prog": 8,
+      "gsap": 25
+    },
+    {
+      "el": 20.6,
+      "fps": 12.7,
+      "calls": 12,
+      "geo": 10,
+      "tex": 4,
+      "prog": 8,
+      "gsap": 25
+    },
+    {
+      "el": 21.5,
+      "fps": 12.7,
+      "calls": 12,
+      "geo": 10,
+      "tex": 4,
+      "prog": 8,
+      "gsap": 25
+    },
+    {
+      "el": 22.6,
+      "fps": 13.5,
+      "calls": 12,
+      "geo": 10,
+      "tex": 4,
+      "prog": 8,
+      "gsap": 25
+    },
+    {
+      "el": 23.6,
+      "fps": 13.5,
+      "calls": 10,
+      "geo": 10,
+      "tex": 4,
+      "prog": 8,
+      "gsap": 25
+    },
+    {
+      "el": 24.6,
+      "fps": 14.5,
+      "calls": 8,
+      "geo": 10,
+      "tex": 4,
+      "prog": 8,
+      "gsap": 25
+    },
+    {
+      "el": 25.6,
+      "fps": 14.5,
+      "calls": 8,
+      "geo": 10,
+      "tex": 4,
+      "prog": 8,
+      "gsap": 25
+    },
+    {
+      "el": 0.2,
+      "fps": 14.3,
+      "calls": 4,
+      "geo": 7,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 26
+    },
+    {
+      "el": 0.9,
+      "fps": 14.3,
+      "calls": 4,
+      "geo": 7,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 1.9,
+      "fps": 14.3,
+      "calls": 4,
+      "geo": 7,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 2.8,
+      "fps": 12.9,
+      "calls": 4,
+      "geo": 7,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 3.8,
+      "fps": 12.9,
+      "calls": 4,
+      "geo": 7,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 22.4,
+      "fps": 13.4,
+      "calls": 12,
+      "geo": 9,
+      "tex": 3,
+      "prog": 8,
+      "gsap": 25
+    },
+    {
+      "el": 0.2,
+      "fps": 13.4,
+      "calls": 4,
+      "geo": 7,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 26
+    },
+    {
+      "el": 1,
+      "fps": 15.1,
+      "calls": 4,
+      "geo": 7,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 22.2,
+      "fps": 15.1,
+      "calls": 12,
+      "geo": 9,
+      "tex": 3,
+      "prog": 8,
+      "gsap": 25
+    },
+    {
+      "el": 22.7,
+      "fps": 15.1,
+      "calls": 11,
+      "geo": 9,
+      "tex": 3,
+      "prog": 8,
+      "gsap": 26
+    },
+    {
+      "el": 0.7,
+      "fps": 13.3,
+      "calls": 4,
+      "geo": 7,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 1.7,
+      "fps": 13.3,
+      "calls": 4,
+      "geo": 7,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 22.6,
+      "fps": 13.3,
+      "calls": 12,
+      "geo": 9,
+      "tex": 3,
+      "prog": 8,
+      "gsap": 25
+    },
+    {
+      "el": 0.3,
+      "fps": 14.7,
+      "calls": 4,
+      "geo": 7,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 26
+    },
+    {
+      "el": 1.2,
+      "fps": 14.7,
+      "calls": 4,
+      "geo": 7,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 22.2,
+      "fps": 14.7,
+      "calls": 12,
+      "geo": 9,
+      "tex": 3,
+      "prog": 8,
+      "gsap": 25
+    },
+    {
+      "el": 0,
+      "fps": 14.7,
+      "calls": 10,
+      "geo": 3,
+      "tex": 0,
+      "prog": 0,
+      "gsap": 26
+    },
+    {
+      "el": 0.8,
+      "fps": 14.3,
+      "calls": 4,
+      "geo": 7,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 1.7,
+      "fps": 14.3,
+      "calls": 4,
+      "geo": 7,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 22.6,
+      "fps": 14.3,
+      "calls": 11,
+      "geo": 9,
+      "tex": 3,
+      "prog": 8,
+      "gsap": 26
+    },
+    {
+      "el": 0.6,
+      "fps": 14.6,
+      "calls": 4,
+      "geo": 7,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 1.5,
+      "fps": 14.6,
+      "calls": 4,
+      "geo": 7,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 22.5,
+      "fps": 14.6,
+      "calls": 12,
+      "geo": 9,
+      "tex": 3,
+      "prog": 8,
+      "gsap": 25
+    },
+    {
+      "el": 0.3,
+      "fps": 14.6,
+      "calls": 4,
+      "geo": 7,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 26
+    },
+    {
+      "el": 1.2,
+      "fps": 14.6,
+      "calls": 4,
+      "geo": 7,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 22.2,
+      "fps": 14.6,
+      "calls": 12,
+      "geo": 9,
+      "tex": 3,
+      "prog": 8,
+      "gsap": 25
+    },
+    {
+      "el": 23.1,
+      "fps": 14.6,
+      "calls": 10,
+      "geo": 9,
+      "tex": 3,
+      "prog": 8,
+      "gsap": 26
+    },
+    {
+      "el": 0.8,
+      "fps": 14.4,
+      "calls": 4,
+      "geo": 7,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 1.7,
+      "fps": 14.4,
+      "calls": 4,
+      "geo": 7,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 22.6,
+      "fps": 15.4,
+      "calls": 12,
+      "geo": 9,
+      "tex": 3,
+      "prog": 8,
+      "gsap": 25
+    },
+    {
+      "el": 0.5,
+      "fps": 15.4,
+      "calls": 4,
+      "geo": 7,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 26
+    },
+    {
+      "el": 1.4,
+      "fps": 14.1,
+      "calls": 4,
+      "geo": 7,
+      "tex": 1,
+      "prog": 4,
+      "gsap": 25
+    },
+    {
+      "el": 22.3,
+      "fps": 14.1,
+      "calls": 12,
+      "geo": 9,
+      "tex": 3,
+      "prog": 8,
+      "gsap": 25
+    }
+  ]
+}

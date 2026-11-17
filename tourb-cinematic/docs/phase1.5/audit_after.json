@@ -1,0 +1,303 @@
+{
+ "Старт: 0 ошибок консоли, 0 исключений": {
+  "ok": true,
+  "console_errors": [],
+  "page_errors": []
+ },
+ "Старт: 0 предупреждений консоли": {
+  "ok": true,
+  "warnings": []
+ },
+ "Сеть: 0 ответов 4xx/5xx и сбоев запросов": {
+  "ok": true,
+  "bad": []
+ },
+ "Сеть: нет внешних запросов (работает офлайн)": {
+  "ok": true,
+  "external": []
+ },
+ "Сеть: запросов к ресурсам": {
+  "ok": true,
+  "ru": 30,
+  "keys": 29
+ },
+ "Реестр ассетов: файлы соответствуют статусам": {
+  "ok": true,
+  "out": "Реестр обновлён: assets/ASSET_INVENTORY.md (29 записей)\nПроблем не найдено.\n"
+ },
+ "Ассеты: GLB и Draco-GLB загружаются в браузере": {
+  "ok": true,
+  "glb": [
+   1,
+   1
+  ]
+ },
+ "Ассеты: текстура «Available» (референс гор) загружается": {
+  "ok": true,
+  "texture": [
+   1450,
+   844,
+   "srgb"
+  ]
+ },
+ "Ассеты: отсутствующий (Missing) — не падает, get()=null, громкое предупреждение с указанием файла и источника": {
+  "ok": true,
+  "warns": [
+   "[AssetManager] ассет отсутствует (status Missing): env.terrain.kyrgyzstan — Облёт гор в открывающей сцене и финале; файл assets/models/environment/kyrgyz_terrain.glb; как получить: Создать: DEM Copernicus GLO-30 → меш с LOD → GLB + текстура (цвет по высоте/снегу)"
+  ]
+ },
+ "Ассеты: битая ссылка — ошибка с описанием (ключ, файл, источник), приложение живо": {
+  "ok": true,
+  "errs": [
+   "[AssetManager] не удалось загрузить t.404 — битая ссылка; файл assets/models/нет_файла.glb; как получить: тест — fetch for \"http://127.0.0.1:53309/assets/models/%D0%BD%D0%B5%D1%82_%D1%84%D0%B0%D0%B9%D0%BB%D0%B0.glb\" responded with 404: File not found"
+  ]
+ },
+ "Ассеты: критичный отсутствующий — require() бросает понятную ошибку": {
+  "ok": true,
+  "msg": "Критичные ассеты недоступны:\n • env.terrain.kyrgyzstan — Облёт гор в открывающей сцене и финале; файл assets/models/environment/kyrgyz_terrain.glb; как получить: Создать: DEM Copernicus GLO-30 → меш с LOD → GLB + текстура (цвет по высоте/снегу) [файла нет]"
+ },
+ "Шейдеры: все программы собраны, gl.getError() = 0": {
+  "ok": true,
+  "programs": 4,
+  "bad": 0,
+  "glError": 0,
+  "pointRange": [
+   1,
+   1023
+  ],
+  "maxVarying": 31,
+  "fragPrecision": 23
+ },
+ "Шейдеры: сломанный шейдер найден и отключён, остальное работает, без спама в консоли": {
+  "ok": true,
+  "found": 1,
+  "badHidden": true,
+  "goodVisible": true,
+  "spam": 0,
+  "guardLogged": true,
+  "shaderLogged": true
+ },
+ "THREE.Clock не используется (src/), таймер — THREE.Timer": {
+  "ok": true,
+  "timerClass": "Timer",
+  "hasClock": false
+ },
+ "Dispose: val-digital — все несовместные ресурсы освобождены (геометрии, материалы, текстуры, instancing)": {
+  "ok": true,
+  "total": 10,
+  "shared": 0,
+  "fired": 10,
+  "notDisposed": []
+ },
+ "Dispose: val-map — все несовместные ресурсы освобождены (геометрии, материалы, текстуры, instancing)": {
+  "ok": true,
+  "total": 41,
+  "shared": 3,
+  "fired": 38,
+  "notDisposed": []
+ },
+ "Камера val-digital: плавно, без крена/скачков/NaN, не в геометрии; старт и финиш из покоя": {
+  "ok": true,
+  "frames": 721,
+  "nan": 0,
+  "maxSpeed": 2.48,
+  "maxAccel": 0.68,
+  "maxJerk": 9.1,
+  "maxAngVel": 0.311,
+  "startSpeed": 0,
+  "endSpeed": 0.131,
+  "maxRoll": 0,
+  "minHeight": 3.4,
+  "minDistToBox": 7.47,
+  "minDistToCard": null,
+  "jumps": 0
+ },
+ "Камера val-map: плавно, без крена/скачков/NaN, не в геометрии; старт и финиш из покоя": {
+  "ok": true,
+  "frames": 841,
+  "nan": 0,
+  "maxSpeed": 4.54,
+  "maxAccel": 1.03,
+  "maxJerk": 20.9,
+  "maxAngVel": 0.71,
+  "startSpeed": 0.001,
+  "endSpeed": 0.204,
+  "maxRoll": 0,
+  "minHeight": 3.8,
+  "minDistToBox": 1.9,
+  "minDistToCard": 3.73,
+  "jumps": 0
+ },
+ "Цикл ×10: геометрии/текстуры/программы/GSAP/DOM не растут после первого цикла": {
+  "ok": true,
+  "snapshots": [
+   {
+    "scene": "val-digital",
+    "geo": 8,
+    "tex": 1,
+    "prog": 6,
+    "heapMB": 12.6,
+    "dom": 41,
+    "gsap": 12,
+    "veil": "0"
+   },
+   {
+    "scene": "val-digital",
+    "geo": 8,
+    "tex": 1,
+    "prog": 6,
+    "heapMB": 13.4,
+    "dom": 41,
+    "gsap": 12,
+    "veil": "0"
+   },
+   {
+    "scene": "val-digital",
+    "geo": 8,
+    "tex": 1,
+    "prog": 6,
+    "heapMB": 12.6,
+    "dom": 41,
+    "gsap": 12,
+    "veil": "0"
+   },
+   {
+    "scene": "val-digital",
+    "geo": 8,
+    "tex": 1,
+    "prog": 6,
+    "heapMB": 13.4,
+    "dom": 41,
+    "gsap": 12,
+    "veil": "0"
+   },
+   {
+    "scene": "val-digital",
+    "geo": 8,
+    "tex": 1,
+    "prog": 6,
+    "heapMB": 12.8,
+    "dom": 41,
+    "gsap": 12,
+    "veil": "0"
+   },
+   {
+    "scene": "val-digital",
+    "geo": 8,
+    "tex": 1,
+    "prog": 6,
+    "heapMB": 14.5,
+    "dom": 41,
+    "gsap": 12,
+    "veil": "0"
+   },
+   {
+    "scene": "val-digital",
+    "geo": 8,
+    "tex": 1,
+    "prog": 6,
+    "heapMB": 13.3,
+    "dom": 41,
+    "gsap": 12,
+    "veil": "0"
+   },
+   {
+    "scene": "val-digital",
+    "geo": 8,
+    "tex": 1,
+    "prog": 6,
+    "heapMB": 13.4,
+    "dom": 41,
+    "gsap": 12,
+    "veil": "0"
+   },
+   {
+    "scene": "val-digital",
+    "geo": 8,
+    "tex": 1,
+    "prog": 6,
+    "heapMB": 13.5,
+    "dom": 41,
+    "gsap": 12,
+    "veil": "0"
+   },
+   {
+    "scene": "val-digital",
+    "geo": 8,
+    "tex": 1,
+    "prog": 6,
+    "heapMB": 14.2,
+    "dom": 41,
+    "gsap": 12,
+    "veil": "0"
+   }
+  ]
+ },
+ "Цикл: «штора» перехода возвращается в 0 (переход завершён)": {
+  "ok": true,
+  "veil": [
+   "0",
+   "0",
+   "0",
+   "0",
+   "0",
+   "0",
+   "0",
+   "0",
+   "0",
+   "0"
+  ]
+ },
+ "Цикл: куча JS по циклам (МБ)": {
+  "ok": true,
+  "heapMB": [
+   12.6,
+   13.4,
+   12.6,
+   13.4,
+   12.8,
+   14.5,
+   13.3,
+   13.4,
+   13.5,
+   14.2
+  ]
+ },
+ "Переходы: пакет быстрых команд во время dip не ломает состояние (одна сцена, нет зависшей «шторы»)": {
+  "ok": true,
+  "idAfterBurst": "val-map",
+  "pausedAfterBurst": false,
+  "busy": false,
+  "rendersPerSec": 21.7,
+  "rafMax": 2,
+  "gsapChildren": 17
+ },
+ "Циклы: максимум rAF-колбэков за кадр ≤ 2 (three + тикер GSAP) — дублей цикла рендера нет": {
+  "ok": true,
+  "rafMax": 2
+ },
+ "Циклы: renders/сек не превышает FPS (один render на кадр)": {
+  "ok": true,
+  "rendersPerSec": 21.7,
+  "fps": 24.9
+ },
+ "Потеря и восстановление WebGL-контекста: сообщение показано, после восстановления рендер продолжается": {
+  "ok": true,
+  "errorShown": true,
+  "frozenWhileLost": true,
+  "errorHiddenAfter": true,
+  "resumed": true
+ },
+ "ИТОГО: кроме сознательно вызванных тестами сбоев — 0 ошибок консоли, 0 исключений, 0 ответов 4xx": {
+  "ok": true,
+  "unexpected": [],
+  "bad": [],
+  "page_errors": []
+ },
+ "_env": {
+  "cpus": 1,
+  "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+  "antialias": true,
+  "note": "программный рендер (SwiftShader): FPS не отражает реальную видеокарту"
+ }
+}
