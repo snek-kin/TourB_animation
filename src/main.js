@@ -2,6 +2,9 @@ import { App } from './core/App.js';
 import { SandboxScene } from './scenes/SandboxScene.js';
 import { ValidationDigitalScene } from './scenes/ValidationDigitalScene.js';
 import { ValidationMapScene } from './scenes/ValidationMapScene.js';
+import { initializePostHog, presentationLogger } from './posthog.js';
+
+initializePostHog();
 
 const app = new App({ canvas: document.getElementById('gl'), stage: document.getElementById('stage') });
 globalThis.tourb = app; // для отладки из консоли: tourb.scenes, tourb.cameraCtl …
@@ -26,5 +29,6 @@ try {
   // ?bench — запуск без клика (звук не нужен), чтобы замер не зависел от человека
   if (app.bench) { app.hud.el.loader.classList.add('done'); begin(); } else app.hud.showStart(begin);
 } catch (e) {
+  presentationLogger.error('presentation initialization failed', { stage: 'application_startup' });
   app.reportError(e);
 }
