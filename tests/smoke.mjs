@@ -41,6 +41,28 @@ await test('Smart Deals и «Живой город» не помечены ка�
   for (const id of ['smart_deals', 'living_city', 'translator_dictionary']) ok(FEATURES[id].status === 'concept', id);
   ok(FEATURES.ai_assistant.status === 'later', 'ИИ-помощник — этап 2');
 });
+const { BishkekMapScene } = await import('../src/scenes/BishkekMapScene.js');
+const { generateLayout } = await import('../src/scenes/bishkek/CityKit.js');
+const { resolvedPois, RESERVES } = await import('../src/scenes/bishkek/data.js');
+await test('Bishkek scene: imports, is registered in the timeline, and preserves 230 seconds', () => {
+  ok(typeof BishkekMapScene === 'function', 'сцена не импортируется');
+  const scene = TIMELINE.find((entry) => entry.id === 'bishkek');
+  ok(scene, 'нет сцены bishkek в раскадровке');
+  eq(scene.duration, 25);
+  eq(scene.status, 'implemented');
+  eq(totalDuration(), 230);
+});
+await test('Bishkek layout: deterministic, populated, and clear of reserved sites', () => {
+  const layout = generateLayout(2026), repeat = generateLayout(2026);
+  eq(JSON.stringify(layout.records), JSON.stringify(repeat.records), 'планировка должна быть детерминированной');
+  ok(layout.records.length > 1000, `слишком мало зданий: ${layout.records.length}`);
+  const intersects = (b, r) =>
+    b.x - b.w / 2 < r.x + r.w && b.x + b.w / 2 > r.x &&
+    b.z - b.d / 2 < r.z + r.d && b.z + b.d / 2 > r.z;
+  eq(layout.records.filter((b) => RESERVES.some((r) => intersects(b, r))).length, 0, 'здания перекрывают зарезервированные места');
+  eq(resolvedPois().length, 15);
+  for (const poi of resolvedPois()) ok(STATUS[poi.status], `неизвестный статус POI ${poi.title}`);
+});
 
 console.log('Ассеты и зависимости');
 const manifest = JSON.parse(readFileSync(join(root, 'assets/assets.manifest.json'), 'utf8'));
