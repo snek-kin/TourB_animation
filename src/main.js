@@ -2,6 +2,7 @@ import { App } from './core/App.js';
 import { SandboxScene } from './scenes/SandboxScene.js';
 import { ValidationDigitalScene } from './scenes/ValidationDigitalScene.js';
 import { ValidationMapScene } from './scenes/ValidationMapScene.js';
+import { DigitalWorldScene } from './scenes/DigitalWorldScene.js';
 
 const app = new App({ canvas: document.getElementById('gl'), stage: document.getElementById('stage') });
 globalThis.tourb = app; // для отладки из консоли: tourb.scenes, tourb.cameraCtl …
@@ -14,9 +15,10 @@ try {
   if (app.params.get('scene') === 'sandbox') {
     app.scenes.register({ id: 'sandbox', create: (a) => new SandboxScene(a), loop: true });
   } else {
-    app.scenes
-      .register({ id: 'val-digital', create: (a) => new ValidationDigitalScene(a), transition: 'dip' })
-      .register({ id: 'val-map', create: (a) => new ValidationMapScene(a), transition: 'dip', loop: true });
+   app.scenes
+  .register({ id: 'val-digital', create: (a) => new ValidationDigitalScene(a), transition: 'dip' })
+  .register({ id: 'digital', create: (a) => new DigitalWorldScene(a), transition: 'dip' })
+  .register({ id: 'val-map', create: (a) => new ValidationMapScene(a), transition: 'dip', loop: true });
   }
 
   app.hud.setLoading(0.1, 'Подготовка сцены…');
