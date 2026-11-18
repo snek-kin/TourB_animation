@@ -13,26 +13,44 @@ import { markShared } from './Disposer.js';
 export class AssetManager {
   constructor(renderer, { baseUrl = 'assets/' } = {}) {
     this.renderer = renderer;
-    this.baseUrl = baseUrl;
+    this.appRoot = new URL('../../', import.meta.url);
+    this.baseUrl = new URL(baseUrl, this.appRoot);
+    if (!this.baseUrl.pathname.endsWith('/')) this.baseUrl.pathname += '/';
     this.manifest = {};
     this.cache = new Map();
     this._pending = new Map();
     this.missing = new Set();
     this.errors = [];
     this._gltf = null;
+    this._gltfPromise = null;
+    this._initPromise = null;
+    this._manifestLoaded = false;
     this._tex = new THREE.TextureLoader();
   }
 
   /** Возвращает true, если манифест загружен. Иначе — громкая ошибка в консоль и работа без внешних ассетов. */
-  async init(manifestUrl = `${this.baseUrl}assets.manifest.json`) {
+  init(manifestUrl = new URL('assets.manifest.json', this.baseUrl).href) {
+    if (this._manifestLoaded) return Promise.resolve(true);
+    if (this._initPromise) return this._initPromise;
+    manifestUrl = new URL(manifestUrl, this.baseUrl).href;
+    this._initPromise = this._loadManifest(manifestUrl).finally(() => { this._initPromise = null; });
+    return this._initPromise;
+  }
+
+  async _loadManifest(manifestUrl) {
     try {
       const res = await fetch(manifestUrl);
-      if (!res.ok) throw new Error(`HTTP ${res.status} для ${new URL(manifestUrl, document.baseURI).pathname}`);
-      this.manifest = (await res.json()).assets ?? {};
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if (!data?.assets || typeof data.assets !== 'object' || Array.isArray(data.assets))
+        throw new Error('некорректный формат манифеста: ожидается объект assets');
+      this.manifest = data.assets;
+      this._manifestLoaded = true;
       return true;
     } catch (e) {
-      this.errors.push({ key: '(manifest)', message: String(e) });
-      console.error(`[AssetManager] манифест ассетов не загружен — внешние ассеты недоступны, работаем на процедурной графике. Причина: ${e.message}`);
+      const message = `${manifestUrl}: ${e?.message ?? String(e)}`;
+      this.errors.push({ key: '(manifest)', message });
+      console.error(`[AssetManager] манифест ассетов не загружен — внешние ассеты недоступны, работаем на процедурной графике. Причина: ${message}`);
       return false;
     }
   }
@@ -103,44 +121,53 @@ export class AssetManager {
   }
 
   async _read(e) {
-    const url = this.baseUrl + e.file;
-    switch (e.type) {
-      case 'gltf': {
-        const loader = await this._gltfLoader();
-        const gltf = await loader.loadAsync(url);
-        markShared(gltf.scene);
-        return gltf;
+    const url = new URL(e.file, this.baseUrl).href;
+    try {
+      switch (e.type) {
+        case 'gltf': {
+          const loader = await this._gltfLoader();
+          const gltf = await loader.loadAsync(url);
+          markShared(gltf.scene);
+          return gltf;
+        }
+        case 'texture': {
+          const t = await this._tex.loadAsync(url);
+          t.colorSpace = e.colorSpace === 'linear' ? THREE.NoColorSpace : THREE.SRGBColorSpace;
+          t.anisotropy = Math.min(8, this.renderer.capabilities.getMaxAnisotropy());
+          t.userData.shared = true;
+          return t;
+        }
+        case 'audio': {
+          const r = await fetch(url);
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          return r.arrayBuffer();
+        }
+        case 'json': {
+          const r = await fetch(url);
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          return r.json();
+        }
+        default: throw new Error(`неизвестный тип ассета: ${e.type}`);
       }
-      case 'texture': {
-        const t = await this._tex.loadAsync(url);
-        t.colorSpace = e.colorSpace === 'linear' ? THREE.NoColorSpace : THREE.SRGBColorSpace;
-        t.anisotropy = Math.min(8, this.renderer.capabilities.getMaxAnisotropy());
-        t.userData.shared = true;
-        return t;
-      }
-      case 'audio': {
-        const r = await fetch(url);
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.arrayBuffer();
-      }
-      case 'json': {
-        const r = await fetch(url);
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
-      }
-      default: throw new Error(`неизвестный тип ассета: ${e.type}`);
+    } catch (e) {
+      throw new Error(`запрос ${url}: ${e?.message ?? String(e)}`);
     }
   }
 
   async _gltfLoader() {
     if (this._gltf) return this._gltf;
-    const [{ GLTFLoader }, { DRACOLoader }] = await Promise.all([
-      import('three/addons/loaders/GLTFLoader.js'),
-      import('three/addons/loaders/DRACOLoader.js'),
-    ]);
-    const draco = new DRACOLoader().setDecoderPath('vendor/three/examples/jsm/libs/draco/gltf/');
-    this._gltf = new GLTFLoader().setDRACOLoader(draco);
-    return this._gltf;
+    if (!this._gltfPromise) {
+      this._gltfPromise = Promise.all([
+        import('three/addons/loaders/GLTFLoader.js'),
+        import('three/addons/loaders/DRACOLoader.js'),
+      ]).then(([{ GLTFLoader }, { DRACOLoader }]) => {
+        const dracoPath = new URL('vendor/three/examples/jsm/libs/draco/gltf/', this.appRoot).href;
+        const draco = new DRACOLoader().setDecoderPath(dracoPath);
+        this._gltf = new GLTFLoader().setDRACOLoader(draco);
+        return this._gltf;
+      }).finally(() => { this._gltfPromise = null; });
+    }
+    return this._gltfPromise;
   }
 
   /** Принудительно освободить ассеты (например, после ухода из сцены, которая единственная ими пользовалась). */
