@@ -5,6 +5,8 @@ import { AssetManager } from './AssetManager.js';
 import { AudioManager } from './AudioManager.js';
 import { TransitionManager } from './TransitionManager.js';
 import { SceneManager } from './SceneManager.js';
+import { SequenceDirector } from './SequenceDirector.js';
+import { CinematicCameraController } from './CinematicCameraController.js';
 import { PerfMonitor } from './PerfMonitor.js';
 import { Hud } from '../ui/Hud.js';
 import { posthog } from '../posthog.js';
@@ -34,6 +36,8 @@ export class App {
     this._frames = 0;
     this._win = { frames: 0, time: 0, skip: 1, low: 0 };
     this._debugAt = 0;
+    this._listeners = [];
+    this._disposed = false;
   }
 
   async init() {
@@ -63,16 +67,18 @@ export class App {
     this.audio = new AudioManager(this.assets);
     this.transitions = new TransitionManager(this);
     this.scenes = new SceneManager(this);
+    this.cinematicCamera = new CinematicCameraController(this.cameraCtl);
+    this.director = new SequenceDirector(this.scenes, { cameraController: this.cinematicCamera });
 
     if (this.params.has('q')) this._setQualityLevel(Number(this.params.get('q')) || 0);
     this.resize();
-    globalThis.addEventListener('resize', () => this.resize());
-    this.canvas.addEventListener('webglcontextlost', (e) => {
+    this._listen(globalThis, 'resize', () => this.resize());
+    this._listen(this.canvas, 'webglcontextlost', (e) => {
       e.preventDefault();
       this.renderer.setAnimationLoop(null);
       this.hud.showError('Графический контекст потерян (драйвер или нехватка памяти). Ждём восстановления; если не вернётся — перезагрузите страницу.');
     });
-    this.canvas.addEventListener('webglcontextrestored', () => {
+    this._listen(this.canvas, 'webglcontextrestored', () => {
       this.hud.el.error.hidden = true;
       this.timer.reset();
       this.renderer.setAnimationLoop((t) => this._tick(t));
@@ -140,8 +146,9 @@ export class App {
     const raw = this._frames++ === 0 ? 0 : this.timer.getDelta();     // первый кадр: дельта = время загрузки страницы, не берём
     const dt = Math.min(raw, CONFIG.quality.maxDt);                    // анимация видит ограниченный dt…
     if (raw > 0) this.perf.frame(raw * 1000, timestamp);               // …а статистика — настоящий
-    const stepped = this.scenes.update(dt);
+    const stepped = this.director.ownsTimeline ? this.director.update(dt) : this.scenes.update(dt);
     this.cameraCtl.update(stepped);
+    this.cinematicCamera.update(stepped);
     this.scenes.lateUpdate(stepped);
     const scene = this.scenes.current?.scene;
     if (scene) { this.renderer.render(scene, this.camera); this.perf.notePeak(); }
@@ -164,20 +171,24 @@ export class App {
   }
 
   _bindKeys() {
-    globalThis.addEventListener('keydown', (e) => {
+    this._listen(globalThis, 'keydown', (e) => {
       if (e.repeat) return;
       switch (e.code) {
         case 'Space':
           e.preventDefault();
-          this.scenes.togglePause();
+          if (this.director.active) this.director.pause();
+          else if (this.director.state === 'paused') this.director.resume();
+          else this.scenes.togglePause();
           posthog?.capture('presentation_pause_toggled', { paused: this.scenes.paused });
           break;
         case 'ArrowRight':
-          this.scenes.next();
+          if (this.director.active || this.director.state === 'paused') this.director.skip();
+          else this.scenes.next();
           posthog?.capture('scene_navigation_requested', { direction: 'next' });
           break;
         case 'ArrowLeft':
-          this.scenes.prev();
+          if (this.director.active || this.director.state === 'paused') this.director.previous();
+          else this.scenes.prev();
           posthog?.capture('scene_navigation_requested', { direction: 'previous' });
           break;
         case 'KeyD': {
@@ -214,12 +225,35 @@ export class App {
   }
 
   _bindErrors() {
-    globalThis.addEventListener('error', (e) => this.reportError(e.error ?? e.message));
-    globalThis.addEventListener('unhandledrejection', (e) => this.reportError(e.reason));
+    this._listen(globalThis, 'error', (e) => this.reportError(e.error ?? e.message));
+    this._listen(globalThis, 'unhandledrejection', (e) => this.reportError(e.reason));
+  }
+
+  _listen(target, type, listener, options) {
+    target.addEventListener(type, listener, options);
+    this._listeners.push({ target, type, listener, options });
   }
 
   reportError(err) {
     console.error(err);
     this.hud?.showError(`Ошибка: ${err?.message ?? err}\n(подробности — в консоли браузера, F12)`);
+  }
+
+  dispose() {
+    if (this._disposed) return;
+    this._disposed = true;
+    this.renderer?.setAnimationLoop(null);
+    this.timer?.disconnect();
+    for (const { target, type, listener, options } of this._listeners)
+      target.removeEventListener(type, listener, options);
+    this._listeners.length = 0;
+    this.director?.dispose();
+    this.cinematicCamera?.dispose();
+    this.scenes?.dispose();
+    this.transitions?.dispose();
+    this.cameraCtl?.dispose();
+    this.audio?.dispose?.();
+    this.assets?.dispose?.();
+    this.renderer?.dispose();
   }
 }
