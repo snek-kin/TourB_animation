@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <title>TourB — Cinematic · Phase 1</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/svg+xml" href="assets/ui/favicon.svg">
   <link rel="stylesheet" href="src/ui/style.css">
   <!-- Импорт-карта: three и аддоны берутся из vendor/ (работает офлайн, без сборки) -->
   <script type="importmap">
@@ -36,12 +37,14 @@
       <div class="bar"><i id="loader-bar"></i></div>
       <div id="loader-text">Загрузка…</div>
       <button id="start" hidden>Начать</button>
-      <div class="keys">Пробел — пауза · ← → — сцены · D — отладка · F — во весь экран · M — звук</div>
+      <div class="keys">Пробел — пауза · ← → — сцены · D — отладка · F — во весь экран · M — вкл/выкл звук (дорожек пока нет)</div>
     </div>
 
     <div id="error" hidden></div>
   </div>
 
+  <!-- Конфигурация окружения (PostHog). Классический скрипт: выполняется до src/main.js. Пустые значения = аналитика выключена. -->
+  <script src="runtime-config.js"></script>
   <script src="vendor/gsap/gsap.min.js"></script>
   <script type="module" src="src/main.js"></script>
 </body>
