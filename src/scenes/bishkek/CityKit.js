@@ -15,7 +15,7 @@ function overlaps(a, b) { return a.x < b.x + b.w && a.x + a.w > b.x && a.z < b.z
 
 // Building grid: a regular minor-street lattice merged with the named arteries,
 // so the downtown reads as many blocks rather than a handful of super-cells.
-function boundaries() {
+export function boundaries() {
   const xs = new Set([CITY.xMin, CITY.xMax, ...STREETS_NS.map((s) => s.x)]);
   const zs = new Set([CITY.zMin, CITY.zMax, ...AVENUES_EW.map((a) => a.z)]);
   for (let x = -110; x <= 110; x += 11) if (!STREETS_NS.some((s) => Math.abs(x - s.x) < 4)) xs.add(x);
@@ -139,6 +139,7 @@ function roofPrism() {
 export function buildCity(layout, groundHeightAt) {
   const group = new THREE.Group(); group.name = 'city';
   const facadeMats = [];
+  const meshes = {};
   const rand = rng(777);
   const m = new THREE.Matrix4(), q = new THREE.Quaternion(), p = new THREE.Vector3(), s = new THREE.Vector3();
   const tint = new THREE.Color();
@@ -164,11 +165,13 @@ export function buildCity(layout, groundHeightAt) {
       const v = 0.86 + rand() * 0.24;
       tint.setRGB(v, v * (0.97 + rand() * 0.05), v * (0.94 + rand() * 0.06));
       mesh.setColorAt(i, tint);
+      r.tint = [tint.r, tint.g, tint.b];
     });
     mesh.instanceMatrix.needsUpdate = true;
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
     mesh.frustumCulled = false; mesh.name = `buildings-${type}`;
     group.add(mesh);
+    meshes[type] = mesh;
     if (type === 'house') {
       const roofs = new THREE.InstancedMesh(roofPrism(), new THREE.MeshStandardMaterial({ color: 0x7d5a4a, roughness: 0.9 }), list.length);
       list.forEach((r, i) => {
@@ -187,7 +190,7 @@ export function buildCity(layout, groundHeightAt) {
   const lm = buildLandmarks(groundHeightAt);
   group.add(lm.group);
   colliders.push(...lm.colliders);
-  return { group, facadeMats, flagUniforms: lm.flagUniforms, colliders };
+  return { group, facadeMats, flagUniforms: lm.flagUniforms, colliders, meshes };
 }
 // Recognizable landmarks — stylized procedural approximations (not photogrammetry).
 function buildLandmarks(groundHeightAt) {

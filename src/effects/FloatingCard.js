@@ -43,8 +43,8 @@ export class FloatingCard extends THREE.Mesh {
     this.visible = v > 0.001;
   }
 
-  update(dt, camera) {
-    this._t += dt;
+  update(dt, camera, elapsed = null) {
+    this._t = Number.isFinite(elapsed) ? elapsed : this._t + dt;
     this.position.y = this.baseY + Math.sin(this._t * 1.2) * 0.06 * this._appear;
     this.quaternion.copy(camera.quaternion); // billboard (родитель без поворота)
   }

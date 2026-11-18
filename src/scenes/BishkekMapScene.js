@@ -14,6 +14,7 @@ import { makeGroundHeight, buildTerrain } from './bishkek/Terrain.js';
 import { generateLayout, buildCity } from './bishkek/CityKit.js';
 import { buildCityGround, buildAvenueStrips, buildTrees } from './bishkek/Roads.js';
 import { buildAtmosphere } from './bishkek/Atmosphere.js';
+import { DigitalPulse } from './bishkek/DigitalPulse.js';
 
 const N = 4000;
 
@@ -52,7 +53,8 @@ export class BishkekMapScene extends BaseScene {
     super(app, { id: 'bishkek', duration: 25, feature: 'maps_places' });
     this.showDisclaimer = true; // в кадре есть концепт-контент (гиды/события)
     this.markers = []; this.cards = [];
-    this.facadeMats = []; this.flagUniforms = null;
+    this.facadeMats = []; this.flagUniforms = null; this.pulse = null;
+    this._duskT = 0;
   }
 
   build() {
@@ -70,6 +72,14 @@ export class BishkekMapScene extends BaseScene {
     this.track(this.flagUniforms.uMap.value); // текстура в uniforms — Disposer её не сканирует
     this.scene.add(this.track(buildAvenueStrips(gh)));
     this.scene.add(this.track(buildTrees(gh)));
+
+    this.pulse = this.track(new DigitalPulse({
+      instances: layout.instances,
+      meshes: city.meshes,
+      facadeMats: city.facadeMats,
+      groundHeightAt: gh,
+    }));
+    this.scene.add(this.pulse);
 
     const atmo = buildAtmosphere();
     this.sky = this.track(atmo.sky); this.stars = this.track(atmo.stars);
@@ -153,6 +163,16 @@ export class BishkekMapScene extends BaseScene {
     const dusk = { t: 0 };
     tl.to(dusk, { t: 1, duration: 6, ease: 'sine.inOut', onUpdate: () => this._applyDusk(dusk.t) }, 8);
 
+    const U = this.pulse.uniforms;
+    tl.set(U.uDigital, { value: 0 }, 0);
+    tl.set(U.uScanRadius, { value: 0 }, 0);
+    tl.set(U.uRingStrength, { value: 0 }, 0);
+    tl.to(U.uDigital, { value: 1, duration: 1.6, ease: 'sine.out' }, 13);
+    tl.to(U.uRingStrength, { value: 1, duration: 0.8, ease: 'sine.out' }, 13);
+    tl.to(U.uScanRadius, { value: 640, duration: 5, ease: 'sine.inOut' }, 13);
+    tl.to(U.uRingStrength, { value: 0.25, duration: 4.2, ease: 'sine.in' }, 13.8);
+    tl.to(U.uDigital, { value: 0.85, duration: 2, ease: 'sine.inOut' }, 21);
+
     const base = { attractions: 14.5, food: 16, stay: 17.2, guides: 18.2, events: 19.2 };
     const idx = {};
     for (const { poi, marker } of this.markers) {
@@ -171,6 +191,7 @@ export class BishkekMapScene extends BaseScene {
   }
 
   _applyDusk(t) {
+    this._duskT = t;
     const D = this._dusk;
     this.sun.intensity = 2.4 + (0.35 - 2.4) * t;
     this.sun.color.lerpColors(D.sunDay, D.sunDusk, t);
@@ -185,15 +206,16 @@ export class BishkekMapScene extends BaseScene {
     this.starU.uOpacity.value = s * s * (3 - 2 * s) * 0.85;
   }
 
-  update(dt) {
-    if (this.flagUniforms) this.flagUniforms.uTime.value += dt;
-    for (const { marker } of this.markers) marker.update(dt);
+  update(dt, elapsed = this.elapsed) {
+    if (this.flagUniforms) this.flagUniforms.uTime.value = elapsed;
+    for (const { marker } of this.markers) marker.update(dt, elapsed);
+    this.pulse?.update(elapsed, this._duskT);
   }
 
   lateUpdate(dt) {
     const { camera, renderer } = this.app;
-    this.morph.update(dt, camera, renderer);
-    for (const c of this.cards) c.update(dt, camera);
+    this.morph.update(dt, camera, renderer, this.elapsed);
+    for (const c of this.cards) c.update(dt, camera, this.elapsed);
     this.sky.position.copy(camera.position);
     this.stars.position.copy(camera.position);
   }
@@ -201,5 +223,6 @@ export class BishkekMapScene extends BaseScene {
   setQuality(q) {
     this.morph?.setDensity(q.density);
     this.stars?.geometry.setDrawRange(0, Math.floor(this.starCount * q.density));
+    this.pulse?.setQuality(q.density);
   }
 }

@@ -42,7 +42,9 @@ await test('Smart Deals и «Живой город» не помечены ка�
   ok(FEATURES.ai_assistant.status === 'later', 'ИИ-помощник — этап 2');
 });
 const { BishkekMapScene } = await import('../src/scenes/BishkekMapScene.js');
-const { generateLayout } = await import('../src/scenes/bishkek/CityKit.js');
+const { generateLayout, boundaries } = await import('../src/scenes/bishkek/CityKit.js');
+const { DigitalPulse } = await import('../src/scenes/bishkek/DigitalPulse.js');
+const { disposeObject } = await import('../src/core/Disposer.js');
 const { resolvedPois, RESERVES } = await import('../src/scenes/bishkek/data.js');
 await test('Bishkek scene: imports, is registered in the timeline, and preserves 230 seconds', () => {
   ok(typeof BishkekMapScene === 'function', 'сцена не импортируется');
@@ -55,13 +57,96 @@ await test('Bishkek scene: imports, is registered in the timeline, and preserves
 await test('Bishkek layout: deterministic, populated, and clear of reserved sites', () => {
   const layout = generateLayout(2026), repeat = generateLayout(2026);
   eq(JSON.stringify(layout.records), JSON.stringify(repeat.records), 'планировка должна быть детерминированной');
-  ok(layout.records.length > 1000, `слишком мало зданий: ${layout.records.length}`);
+  eq(layout.records.length, 1293, `число зданий Stage 1 изменилось: ${layout.records.length}`);
   const intersects = (b, r) =>
     b.x - b.w / 2 < r.x + r.w && b.x + b.w / 2 > r.x &&
     b.z - b.d / 2 < r.z + r.d && b.z + b.d / 2 > r.z;
   eq(layout.records.filter((b) => RESERVES.some((r) => intersects(b, r))).length, 0, 'здания перекрывают зарезервированные места');
   eq(resolvedPois().length, 15);
   for (const poi of resolvedPois()) ok(STATUS[poi.status], `неизвестный статус POI ${poi.title}`);
+});
+await test('Digital Pulse: road ranges use indices and remain primitive-aligned at all quality levels', () => {
+  const layout = generateLayout(2026);
+  for (const records of Object.values(layout.instances)) {
+    for (const record of records) {
+      record.y0 = 0;
+      record.tint = [0.72, 0.8, 0.9];
+    }
+  }
+  const meshes = {};
+  for (const [type, records] of Object.entries(layout.instances)) {
+    if (!records.length) continue;
+    const mesh = new THREE.InstancedMesh(new THREE.BoxGeometry(), new THREE.MeshBasicMaterial(), records.length);
+    records.forEach((record, i) => mesh.setColorAt(i, new THREE.Color(...record.tint)));
+    meshes[type] = mesh;
+  }
+  const facadeMats = [new THREE.MeshStandardMaterial({ emissiveIntensity: 0 })];
+  const pulse = new DigitalPulse({ instances: layout.instances, meshes, facadeMats, groundHeightAt: () => 0 });
+  const roadIndices = pulse.roads.geometry.index.count;
+  ok(roadIndices > pulse.roads.geometry.attributes.position.count, 'test requires indexed road geometry');
+  pulse.setQuality(1);
+  eq(pulse.roads.geometry.drawRange.count, roadIndices, 'full quality must draw every road index');
+  for (const density of [0.75, 0.25, 0]) {
+    pulse.setQuality(density);
+    ok(pulse.roads.geometry.drawRange.count <= roadIndices, 'road draw range exceeds index count');
+    eq(pulse.roads.geometry.drawRange.count % 6, 0, 'road range cuts through a quad');
+    eq(pulse.edges.geometry.drawRange.count % 2, 0, 'edge range cuts through a segment');
+    ok(pulse.beacons.geometry.drawRange.count <= pulse.beacons.geometry.attributes.position.count,
+      'beacon draw range exceeds its vertex count');
+  }
+
+  pulse.uniforms.uDigital.value = 1;
+  pulse.uniforms.uScanRadius.value = 200;
+  pulse.update(15, 0.5);
+  const color = new THREE.Color();
+  let illuminated = false;
+  for (const [type, records] of Object.entries(layout.instances)) {
+    const mesh = meshes[type];
+    if (!mesh) continue;
+    for (let i = 0; i < records.length; i++) {
+      mesh.getColorAt(i, color);
+      if (Math.abs(color.r - records[i].tint[0]) > 1e-5) illuminated = true;
+    }
+  }
+  ok(illuminated, 'building wave did not change instance colors');
+  ok(facadeMats[0].emissiveIntensity > 0.6, 'window emissive intensity did not animate');
+
+  pulse.uniforms.uDigital.value = 0;
+  pulse.update(12, 0.5);
+  for (const [type, records] of Object.entries(layout.instances)) {
+    const mesh = meshes[type];
+    if (!mesh) continue;
+    for (let i = 0; i < records.length; i++) {
+      mesh.getColorAt(i, color);
+      ok(Math.abs(color.r - records[i].tint[0]) < 1e-6, 'base instance tint was not restored');
+    }
+  }
+  eq(facadeMats[0].emissiveIntensity, 0.6, 'window baseline was not restored');
+
+  pulse.uniforms.uDigital.value = 1;
+  pulse.update(15, 0.5);
+  const panelIndex = layout.instances.panel.findIndex((record) => Math.hypot(record.x, record.z - 4) < 180);
+  ok(panelIndex >= 0, 'test requires a panel building inside the wave radius');
+  const expected = meshes.panel.getColorAt(panelIndex, new THREE.Color()).toArray();
+  pulse.uniforms.uDigital.value = 0;
+  pulse.update(12, 0.5);
+  pulse.uniforms.uDigital.value = 1;
+  pulse.update(15, 0.5);
+  const repeated = meshes.panel.getColorAt(panelIndex, new THREE.Color()).toArray();
+  eq(JSON.stringify(repeated), JSON.stringify(expected), 'seeking back and forward changed pulse colors');
+
+  let disposed = 0;
+  for (const object of [pulse.edges, pulse.roads, pulse.ring, pulse.beacons]) {
+    object.geometry.addEventListener('dispose', () => disposed++);
+    object.material.addEventListener('dispose', () => disposed++);
+  }
+  disposeObject(pulse);
+  eq(disposed, 8, 'Digital Pulse GPU resources were not all disposed');
+  for (const mesh of Object.values(meshes)) {
+    mesh.geometry.dispose();
+    mesh.material.dispose();
+  }
+  facadeMats[0].dispose();
 });
 
 console.log('Ассеты и зависимости');
