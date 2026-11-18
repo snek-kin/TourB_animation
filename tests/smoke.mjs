@@ -179,6 +179,79 @@ await test('AssetManager: неизвестный ключ — ошибка в er
   try { await am.load(['нет такого']); } finally { console.error = oe; }
   eq(am.errors.length, 1);
 });
+await test('AssetManager: манифест запрашивается из заданного GitHub Pages-подпути и init дедуплицируется', async () => {
+  const am = new AssetManager({}, { baseUrl: 'https://example.test/TourB_animation/assets/' });
+  const of = globalThis.fetch; let requests = 0;
+  globalThis.fetch = async (url) => {
+    requests++;
+    eq(url, 'https://example.test/TourB_animation/assets/assets.manifest.json');
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    return { ok: true, json: async () => ({ assets: { sample: { type: 'json', file: 'sample.json' } } }) };
+  };
+  try {
+    const [a, b] = await Promise.all([am.init('assets.manifest.json'), am.init()]);
+    ok(a && b && am.manifest.sample, 'манифест не загружен');
+    eq(requests, 1, 'одновременный init должен выполнять один запрос');
+  } finally { globalThis.fetch = of; }
+});
+await test('AssetManager: 404 манифеста не прерывает запуск, пишет URL и допускает повторную попытку', async () => {
+  const am = new AssetManager({}, { baseUrl: 'https://example.test/TourB_animation/assets/' });
+  const of = globalThis.fetch, oe = console.error; let requests = 0;
+  globalThis.fetch = async () => {
+    requests++;
+    return requests === 1
+      ? { ok: false, status: 404 }
+      : { ok: true, json: async () => ({ assets: {} }) };
+  };
+  console.error = () => {};
+  try {
+    eq(await am.init(), false, '404 манифеста должен быть мягкой ошибкой');
+    ok(am.errors[0]?.message.includes('https://example.test/TourB_animation/assets/assets.manifest.json') && am.errors[0]?.message.includes('HTTP 404'), am.errors[0]?.message);
+    ok(requests === 1 && await am.init(), 'повторный запрос не смог загрузить манифест');
+    eq(requests, 2);
+  } finally { globalThis.fetch = of; console.error = oe; }
+});
+await test('AssetManager: одновременная загрузка GLTF одного ключа использует один запрос', async () => {
+  const am = new AssetManager({});
+  let requests = 0;
+  const gltf = { scene: { traverse() {} } };
+  am._gltf = { loadAsync: async (url) => {
+    requests++;
+    eq(url, new URL('models/sample.glb', am.baseUrl).href);
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    return gltf;
+  } };
+  am.manifest = { sample: { type: 'gltf', file: 'models/sample.glb', status: 'Available' } };
+  await Promise.all([am.load(['sample']), am.load(['sample'])]);
+  eq(requests, 1, 'GLTF не должен загружаться повторно');
+  eq(am.get('sample'), gltf);
+});
+await test('AssetManager: сбой GLTF сохраняет диагностический URL и не прерывает загрузку', async () => {
+  const am = new AssetManager({}, { baseUrl: 'https://example.test/TourB_animation/assets/' });
+  am._gltf = { loadAsync: async () => { throw new Error('HTTP 404'); } };
+  am.manifest = { sample: { type: 'gltf', file: 'models/missing.glb', status: 'Available' } };
+  const oe = console.error; console.error = () => {};
+  try { await am.load(['sample']); } finally { console.error = oe; }
+  eq(am.get('sample'), null);
+  ok(am.errors[0]?.message.includes('https://example.test/TourB_animation/assets/models/missing.glb'), am.errors[0]?.message);
+});
+await test('AssetManager: release освобождает GLTF-геометрию, материал и текстуру', async () => {
+  const am = new AssetManager({});
+  const scene = new THREE.Group(), geometry = new THREE.BoxGeometry();
+  const texture = new THREE.Texture();
+  const material = new THREE.MeshBasicMaterial({ map: texture });
+  scene.add(new THREE.Mesh(geometry, material));
+  am._gltf = { loadAsync: async () => ({ scene }) };
+  am.manifest = { sample: { type: 'gltf', file: 'models/sample.glb', status: 'Available' } };
+  let disposed = 0;
+  geometry.addEventListener('dispose', () => disposed++);
+  material.addEventListener('dispose', () => disposed++);
+  texture.addEventListener('dispose', () => disposed++);
+  await am.load(['sample']);
+  am.release(['sample']);
+  eq(disposed, 3, 'не все ресурсы освободились');
+  eq(am.get('sample'), null);
+});
 await test('PerfMonitor: статистика кадров (среднее, минимум, 1% low, зависания)', () => {
   const pm = new PerfMonitor({ info: { render: {}, memory: {} } });
   for (let i = 0; i < 99; i++) pm.frame(10, i * 10); pm.frame(500, 1000);
