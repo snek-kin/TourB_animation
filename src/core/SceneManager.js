@@ -17,15 +17,23 @@ export class SceneManager {
     this.ended = false;
     this._next = null; // { index, scene } — предзагруженная следующая сцена
     this._preloadToken = 0;
+    this._disposed = false;
   }
 
-  register(def) { this.defs.push(def); return this; }
+  register(def) {
+    if (this._disposed) throw new Error('SceneManager has been disposed');
+    this.defs.push(def);
+    return this;
+  }
 
   /** Создать, предзагрузить, построить и прогреть сцену, не запуская её (пока виден загрузочный экран). */
   async prepare(index = 0, onProgress) {
+    if (this._disposed) throw new Error('SceneManager has been disposed');
     const scene = this.defs[index].create(this.app);
     await scene.preload(onProgress);
+    if (this._disposed) { scene.dispose(); return; }
     await this._build(scene);
+    if (this._disposed) { scene.dispose(); return; }
     this._next = { index, scene };
   }
 
@@ -38,16 +46,20 @@ export class SceneManager {
     const { renderer, camera } = this.app;
     if (renderer) {
       await warmup(renderer, scene.scene, camera);
+      if (this._disposed) return;
       guardScene(renderer, scene.scene, (b) =>
         this.app.hud?.notice(`Эффект отключён: ошибка шейдера (${b.object.name || b.object.type}). Сцена продолжит работу без него.`, 'warn'));
     }
   }
 
   /** Запустить сцену (после prepare — мгновенно). */
-  start(index = 0) { return this.goTo(index, { transition: 'cut' }); }
+  start(index = 0) {
+    if (this.app.director) return this.app.director.start(index);
+    return this.goTo(index, { transition: 'cut' });
+  }
 
-  async goTo(i, { transition } = {}) {
-    if (this.busy || i < 0 || i >= this.defs.length) return;
+  async goTo(i, { transition, duration } = {}) {
+    if (this._disposed || this.busy || i < 0 || i >= this.defs.length) return;
     this.busy = true;
     this._preloadToken++; // любая идущая фоновая предзагрузка устарела
     try {
@@ -58,17 +70,23 @@ export class SceneManager {
         next = this.defs[i].create(this.app);
         await next.preload();
       }
+      if (this._disposed) { next.dispose(); return; }
       const prev = this.current;
       const swap = async () => {
+        if (this._disposed) { next.dispose(); return; }
         if (prev) { prev.exit(); prev.dispose(); }
         await this._build(next);
+        if (this._disposed) { next.dispose(); return; }
         this.current = next; this.index = i; this.ended = false;
         this.app.hud?.setScene(next);
         this.app.markSceneChange?.();
         next.setQuality(this.app.quality);
         next.enter();
       };
-      await this.app.transitions.run(transition ?? this.defs[i].transition ?? 'dip', { from: prev, to: next, swap });
+      const result = await this.app.transitions.run(transition ?? this.defs[i].transition ?? 'dip', {
+        from: prev, to: next, swap, duration,
+      });
+      if (result?.cancelled) return;
       this._preloadNext();
     } catch (err) {
       this.app.reportError?.(err);
@@ -102,13 +120,13 @@ export class SceneManager {
     this.app.hud?.setPaused(this.paused);
   }
 
-  update(dt) {
+  update(dt, { autoAdvance = true } = {}) {
     const s = this.current;
     if (!s || this.paused) return 0;
     s.elapsed += dt;
     s.timeline?.time(s.elapsed);
     s.update(dt, s.elapsed);
-    if (!this.busy && !this.ended && s.elapsed >= s.duration) {
+    if (autoAdvance && !this.ended && s.elapsed >= s.duration) {
       if (this.index < this.defs.length - 1) this.next();
       else if (this.defs[this.index].loop) this.goTo(0, { transition: 'dip' }); // по кругу: последняя → первая
       else { this.ended = true; this.app.hud?.setEnded(); }
@@ -116,16 +134,29 @@ export class SceneManager {
     return dt;
   }
 
+  dispose() {
+    if (this._disposed) return;
+    this._disposed = true;
+    this._preloadToken++;
+    this.app.transitions?.cancel?.();
+    this._next?.scene.dispose();
+    this._next = null;
+    this.current?.exit();
+    this.current?.dispose();
+    this.current = null;
+    this.defs.length = 0;
+  }
+
   /** Фоновая предзагрузка ассетов следующей сцены. Построение (GPU) — только при входе в неё. */
   async _preloadNext() {
     const i = this.index + 1;
-    if (i >= this.defs.length || this._next) return;
+    if (this._disposed || i >= this.defs.length || this._next) return;
     const token = ++this._preloadToken;
     try {
       const scene = this.defs[i].create(this.app);
       await scene.preload();
       // за время загрузки могли перейти на другую сцену — устаревший результат не сохраняем
-      if (token === this._preloadToken && !this._next && this.index + 1 === i) this._next = { index: i, scene };
+      if (!this._disposed && token === this._preloadToken && !this._next && this.index + 1 === i) this._next = { index: i, scene };
       else scene.dispose();
     } catch (e) { console.warn('[SceneManager] предзагрузка следующей сцены не удалась:', e.message ?? e); }
   }
