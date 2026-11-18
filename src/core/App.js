@@ -7,6 +7,7 @@ import { TransitionManager } from './TransitionManager.js';
 import { SceneManager } from './SceneManager.js';
 import { PerfMonitor } from './PerfMonitor.js';
 import { Hud } from '../ui/Hud.js';
+import { posthog } from '../posthog.js';
 
 /**
  * Точка сборки: рендерер, ЕДИНСТВЕННЫЙ цикл (setAnimationLoop), таймер, ресайз 16:9, адаптивное качество,
@@ -166,15 +167,42 @@ export class App {
     globalThis.addEventListener('keydown', (e) => {
       if (e.repeat) return;
       switch (e.code) {
-        case 'Space': e.preventDefault(); this.scenes.togglePause(); break;
-        case 'ArrowRight': this.scenes.next(); break;
-        case 'ArrowLeft': this.scenes.prev(); break;
-        case 'KeyD': this.hud.toggleDebug(); break;
-        case 'KeyM': this.audio.setMuted(!this.audio.muted); break;
-        case 'KeyF':
+        case 'Space':
+          e.preventDefault();
+          this.scenes.togglePause();
+          posthog?.capture('presentation_pause_toggled', { paused: this.scenes.paused });
+          break;
+        case 'ArrowRight':
+          this.scenes.next();
+          posthog?.capture('scene_navigation_requested', { direction: 'next' });
+          break;
+        case 'ArrowLeft':
+          this.scenes.prev();
+          posthog?.capture('scene_navigation_requested', { direction: 'previous' });
+          break;
+        case 'KeyD': {
+          // Переключение панели делаем до вызова аналитики: состояние UI не должно зависеть от SDK.
+          const enabled = this.hud.toggleDebug();
+          posthog?.capture('debug_panel_toggled', { enabled });
+          break;
+        }
+        case 'KeyM': {
+          const muted = !this.audio.muted;
+          this.audio.setMuted(muted);
+          this.hud.notice(
+            muted ? 'Звук выключен.' : 'Звук включён, но аудиодорожки пока не добавлены.',
+            muted ? 'warn' : 'ok',
+          );
+          posthog?.capture('audio_mute_toggled', { muted: this.audio.muted });
+          break;
+        }
+        case 'KeyF': {
+          const enabled = !document.fullscreenElement;
           if (document.fullscreenElement) document.exitFullscreen();
           else this.stage.requestFullscreen?.();
+          posthog?.capture('fullscreen_toggled', { enabled });
           break;
+        }
       }
     });
   }
