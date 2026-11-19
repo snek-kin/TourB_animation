@@ -1,4 +1,4 @@
-// Procedural Bishkek building kit: instanced archetypes + recognizable landmark approximations.
+// Procedural Bishkek building kit: instanced archetypes + contextual city structures.
 // Layout generation is pure (node-testable); mesh building needs DOM canvas (browser only).
 import * as THREE from 'three';
 import { rng } from '../../effects/util.js';
@@ -187,19 +187,16 @@ export function buildCity(layout, groundHeightAt) {
     }
   }
   const colliders = layout.colliders.map((c) => new THREE.Box3(new THREE.Vector3(...c.min), new THREE.Vector3(...c.max)));
-  const lm = buildLandmarks(groundHeightAt);
+  const lm = buildContextStructures(groundHeightAt);
   group.add(lm.group);
   colliders.push(...lm.colliders);
-  return { group, facadeMats, flagUniforms: lm.flagUniforms, colliders, meshes };
+  return { group, facadeMats, colliders, meshes };
 }
-// Recognizable landmarks — stylized procedural approximations (not photogrammetry).
-function buildLandmarks(groundHeightAt) {
+function buildContextStructures(groundHeightAt) {
   const g = new THREE.Group(); g.name = 'landmarks';
   const colliders = [];
   const white = new THREE.MeshStandardMaterial({ color: 0xd8d4c8, roughness: 0.9 });
   const granite = new THREE.MeshStandardMaterial({ color: 0x4a4642, roughness: 0.8 });
-  const bronze = new THREE.MeshStandardMaterial({ color: 0x3d3428, roughness: 0.5, metalness: 0.7 });
-  const glass = new THREE.MeshStandardMaterial({ color: 0x27435f, roughness: 0.25, metalness: 0.6 });
   const box = (w, h, d, mat, x, z, dy = 0) => {
     const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
     mesh.position.set(x, groundHeightAt(x, z) + h / 2 + dy, z);
@@ -211,9 +208,6 @@ function buildLandmarks(groundHeightAt) {
   box(16.5, 0.5, 1.6, white, 0, -4.9, 3.8);
   addCol(0, -8.5, 17, 5, 8);
   box(20, 4, 4.5, white, 0, 16); addCol(0, 16, 21, 4.5, 5.5);
-  const phil = new THREE.Mesh(new THREE.CylinderGeometry(5, 5, 4, 24, 1, false, Math.PI, Math.PI), glass);
-  phil.position.set(23, groundHeightAt(23, -10) + 2, -10); g.add(phil);
-  box(10, 4, 3, white, 23, -12.5); addCol(23, -10, 11, 4.5, 9);
   const vy = groundHeightAt(57, 1);
   const ped = new THREE.Mesh(new THREE.CylinderGeometry(2.4, 2.8, 0.8, 24), granite);
   ped.position.set(57, vy + 0.4, 1); g.add(ped);
@@ -222,26 +216,6 @@ function buildLandmarks(groundHeightAt) {
   const flame = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 8), new THREE.MeshBasicMaterial({ color: 0xffb03b, toneMapped: false }));
   flame.position.set(57, vy + 1.1, 3.6); g.add(flame);
   addCol(57, 1, 5.5, 3.5, 5.5);
-  const sy = groundHeightAt(0, 4);
-  box(1.8, 1.3, 1.2, granite, 0, 4);
-  box(1.5, 0.9, 0.5, bronze, 0, 4, 1.3);
-  box(0.45, 1.1, 0.45, bronze, 0.1, 4, 2.2);
-  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 7, 8), granite);
-  pole.position.set(3, sy + 3.5, 7); g.add(pole);
-  const flagUniforms = { uTime: { value: 0 }, uOpacity: { value: 1 }, uMap: { value: flagTexture() } };
-  const flag = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 1.4, 12, 4), new THREE.ShaderMaterial({
-    uniforms: flagUniforms, side: THREE.DoubleSide, toneMapped: false,
-    vertexShader: `uniform float uTime; varying vec2 vUv;
-      void main(){ vUv = uv; vec3 p = position;
-        p.z += sin(uv.x * 6.0 + uTime * 3.0) * 0.14 * uv.x;
-        p.y += sin(uv.x * 3.0 + uTime * 1.7) * 0.05 * uv.x;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0); }`,
-    fragmentShader: `uniform sampler2D uMap; uniform float uOpacity; varying vec2 vUv;
-      void main(){ vec4 c = texture2D(uMap, vUv); gl_FragColor = vec4(c.rgb, uOpacity);
-        #include <colorspace_fragment> }`,
-  }));
-  flag.position.set(4.15, sy + 6.2, 7); g.add(flag);
-  addCol(3, 7, 1, 7.5, 1);
   box(10, 2.6, 6, white, -20, 142);
   const sheds = new THREE.InstancedMesh(new THREE.BoxGeometry(4, 1.2, 3), new THREE.MeshStandardMaterial({ color: 0x9c8f7a, roughness: 0.9 }), 8);
   const mm = new THREE.Matrix4(), tt = new THREE.Color(), rr = rng(55);
@@ -254,18 +228,5 @@ function buildLandmarks(groundHeightAt) {
   sheds.instanceMatrix.needsUpdate = true;
   if (sheds.instanceColor) sheds.instanceColor.needsUpdate = true;
   sheds.frustumCulled = false; g.add(sheds);
-  return { group: g, colliders, flagUniforms };
-}
-function flagTexture() {
-  const c = document.createElement('canvas'); c.width = 256; c.height = 160;
-  const g = c.getContext('2d');
-  g.fillStyle = '#e8112d'; g.fillRect(0, 0, 256, 160);
-  g.fillStyle = '#ffef00'; g.beginPath(); g.arc(128, 80, 34, 0, Math.PI * 2); g.fill();
-  g.strokeStyle = '#e8112d'; g.lineWidth = 5;
-  for (let i = -1; i <= 1; i++) {
-    g.beginPath(); g.moveTo(100, 80 + i * 12); g.lineTo(156, 80 + i * 12); g.stroke();
-    g.beginPath(); g.moveTo(128 + i * 12, 52); g.lineTo(128 + i * 12, 108); g.stroke();
-  }
-  const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace;
-  return tx;
+  return { group: g, colliders };
 }

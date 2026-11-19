@@ -44,6 +44,9 @@ await test('Smart Deals и «Живой город» не помечены ка�
 const { BishkekMapScene } = await import('../src/scenes/BishkekMapScene.js');
 const { generateLayout, boundaries } = await import('../src/scenes/bishkek/CityKit.js');
 const { DigitalPulse } = await import('../src/scenes/bishkek/DigitalPulse.js');
+const { makeGroundHeight } = await import('../src/scenes/bishkek/Terrain.js');
+const { buildLandmarkPack } = await import('../src/scenes/bishkek/landmarks/LandmarkPack.js');
+const { createCityActivity } = await import('../src/scenes/bishkek/landmarks/CityActivity.js');
 const { disposeObject } = await import('../src/core/Disposer.js');
 const { resolvedPois, RESERVES } = await import('../src/scenes/bishkek/data.js');
 await test('Bishkek scene: imports, is registered in the timeline, and preserves 230 seconds', () => {
@@ -147,6 +150,46 @@ await test('Digital Pulse: road ranges use indices and remain primitive-aligned 
     mesh.material.dispose();
   }
   facadeMats[0].dispose();
+});
+await test('Bishkek landmarks and city activity: procedural models animate deterministically and dispose resources', () => {
+  const groundHeightAt = makeGroundHeight(900);
+  const pack = buildLandmarkPack(groundHeightAt);
+  const activity = createCityActivity(groundHeightAt);
+  eq(Object.keys(pack.landmarks).join(','), 'square,philharmonic,manas');
+  eq(pack.colliders.length, 2, 'landmark collision bounds missing');
+  ok(activity.movers.length >= 5, 'vehicle and pedestrian routes were not created');
+
+  const flag = pack.landmarks.square.userData.flag;
+  const flagPositions = flag.geometry.attributes.position;
+  pack.update(0);
+  const atStart = Array.from(flagPositions.array);
+  pack.update(1.25);
+  const atTime = Array.from(flagPositions.array);
+  ok(atTime.some((value, i) => Math.abs(value - atStart[i]) > 1e-4), 'flag did not animate');
+  pack.update(0);
+  pack.update(1.25);
+  eq(JSON.stringify(Array.from(flagPositions.array)), JSON.stringify(atTime), 'flag animation is not deterministic');
+
+  const vehicle = activity.movers.find((mover) => !mover.pedestrian).object;
+  activity.update(0, 0);
+  const initialPosition = vehicle.position.clone();
+  activity.update(2, 0.6);
+  const atTimePosition = vehicle.position.clone();
+  ok(vehicle.position.distanceTo(initialPosition) > 0.1, 'vehicle did not move along its route');
+  activity.update(8, 1);
+  activity.update(2, 0.6);
+  ok(vehicle.position.distanceTo(atTimePosition) < 1e-8, 'vehicle movement changed when seeking');
+  ok(activity.group.getObjectByName('lamp-diffuser').material.emissiveIntensity > 0.18,
+    'street lighting did not respond to dusk');
+
+  const flagTexture = flag.material.map;
+  const carGeometry = vehicle.children[0].geometry;
+  let textureDisposed = false, geometryDisposed = false;
+  flagTexture.addEventListener('dispose', () => { textureDisposed = true; });
+  carGeometry.addEventListener('dispose', () => { geometryDisposed = true; });
+  disposeObject(pack.group);
+  disposeObject(activity.group);
+  ok(textureDisposed && geometryDisposed, 'landmark or activity GPU resources were not disposed');
 });
 
 console.log('Ассеты и зависимости');

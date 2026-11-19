@@ -8,6 +8,7 @@ const { HotspotManager } = await import('../src/storytelling/HotspotManager.js')
 const { ObjectHighlighter } = await import('../src/storytelling/ObjectHighlighter.js');
 const { CameraController } = await import('../src/core/CameraController.js');
 const { CinematicCameraController } = await import('../src/core/CinematicCameraController.js');
+const { BISHKEK_LANDMARK_STORY } = await import('../src/data/bishkekLandmarkStory.js');
 
 let passed = 0, failed = 0;
 const test = async (name, fn) => {
@@ -111,6 +112,20 @@ await test('story registration validates definitions and rejects duplicate ids',
   try { engine.register({ id: 'bad', chapters: [{ id: 'c', steps: [{ id: 's', actions: [{ type: 'unknown' }] }] }] }); }
   catch { invalid = true; }
   ok(duplicate && invalid, 'invalid story registration was accepted');
+  engine.dispose();
+});
+
+await test('Bishkek landmark story registers its chapters, focus actions, and hotspots', () => {
+  const { app } = harness();
+  const engine = new StorytellingEngine(app, { document: fakeDocument });
+  engine.register(BISHKEK_LANDMARK_STORY);
+  eq(engine.stories.get(BISHKEK_LANDMARK_STORY.id), BISHKEK_LANDMARK_STORY);
+  eq(BISHKEK_LANDMARK_STORY.chapters.length, 2);
+  eq(BISHKEK_LANDMARK_STORY.hotspots.length, 3);
+  eq(BISHKEK_LANDMARK_STORY.chapters.flatMap((chapter) => chapter.steps).length, 4);
+  ok(BISHKEK_LANDMARK_STORY.hotspots.every((hotspot) =>
+    hotspot.content.facts.some((fact) => fact.includes('художественная интерпретация'))),
+  'real-world landmark content must be clearly labeled as stylized');
   engine.dispose();
 });
 

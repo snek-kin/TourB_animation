@@ -5,6 +5,7 @@ import { ValidationMapScene } from './scenes/ValidationMapScene.js';
 import { DigitalWorldScene } from './scenes/DigitalWorldScene.js';
 import { BishkekMapScene } from './scenes/BishkekMapScene.js';
 import { DEMO_STORY } from './data/demoStory.js';
+import { BISHKEK_LANDMARK_STORY } from './data/bishkekLandmarkStory.js';
 import { initializePostHog, presentationLogger } from './posthog.js';
 
 initializePostHog();
@@ -15,6 +16,13 @@ globalThis.tourb = app; // для отладки из консоли: tourb.scen
 try {
   await app.init();
   app.storytelling.register(DEMO_STORY);
+  app.storytelling.register(BISHKEK_LANDMARK_STORY);
+  app.storytelling.panel.setLaunch(() => {
+    const storyId = app.scenes.current?.id === 'bishkek'
+      ? BISHKEK_LANDMARK_STORY.id
+      : DEMO_STORY.id;
+    app.storytelling.start(storyId);
+  }, 'Начать интерактивную историю');
   // Технические стенды и первая производственная сцена:
   //   по умолчанию: val-digital → digital → bishkek → val-map → (dip) → в начало;
   //   ?scene=sandbox — старый «всё в одном» стенд (худший случай по нагрузке).

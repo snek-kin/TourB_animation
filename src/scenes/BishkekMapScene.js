@@ -15,6 +15,8 @@ import { generateLayout, buildCity } from './bishkek/CityKit.js';
 import { buildCityGround, buildAvenueStrips, buildTrees } from './bishkek/Roads.js';
 import { buildAtmosphere } from './bishkek/Atmosphere.js';
 import { DigitalPulse } from './bishkek/DigitalPulse.js';
+import { createCityActivity } from './bishkek/landmarks/CityActivity.js';
+import { buildLandmarkPack } from './bishkek/landmarks/LandmarkPack.js';
 
 const N = 4000;
 
@@ -53,7 +55,7 @@ export class BishkekMapScene extends BaseScene {
     super(app, { id: 'bishkek', duration: 25, feature: 'maps_places' });
     this.showDisclaimer = true; // в кадре есть концепт-контент (гиды/события)
     this.markers = []; this.cards = [];
-    this.facadeMats = []; this.flagUniforms = null; this.pulse = null;
+    this.facadeMats = []; this.landmarks = null; this.cityActivity = null; this.pulse = null;
     this._duskT = 0;
   }
 
@@ -68,10 +70,12 @@ export class BishkekMapScene extends BaseScene {
     const city = buildCity(layout, gh);
     this.scene.add(this.track(city.group));
     this.facadeMats = city.facadeMats;
-    this.flagUniforms = city.flagUniforms;
-    this.track(this.flagUniforms.uMap.value); // текстура в uniforms — Disposer её не сканирует
+    this.landmarks = buildLandmarkPack(gh);
+    this.scene.add(this.track(this.landmarks.group));
     this.scene.add(this.track(buildAvenueStrips(gh)));
     this.scene.add(this.track(buildTrees(gh)));
+    this.cityActivity = createCityActivity(gh);
+    this.scene.add(this.track(this.cityActivity.group));
 
     this.pulse = this.track(new DigitalPulse({
       instances: layout.instances,
@@ -114,10 +118,11 @@ export class BishkekMapScene extends BaseScene {
     this.cityLights = cityLightTargets(layout.records, gh, N);
 
     const cc = this.app.cameraCtl;
-    cc.groundHeightAt = gh; cc.clearance = 3; cc.colliders = city.colliders;
+    cc.groundHeightAt = gh; cc.clearance = 3;
+    cc.colliders = [...city.colliders, ...this.landmarks.colliders];
     cc.setPath({
-      positions: [[0, 15, -195], [-26, 26, -150], [-60, 55, -95], [-85, 95, -20], [-70, 125, -40], [-20, 145, -70]],
-      targets: [[0, 6, 120], [0, 5, 80], [0, 4, 40], [5, 3, 30], [10, 2, 20], [0, 2, 30]],
+      positions: [[0, 15, -195], [-26, 26, -150], [0, 38, 43], [23, 18, 14], [15, 11, 11], [0, 150, -150]],
+      targets: [[0, 6, 120], [0, 5, 80], [0, 1, 7], [23, 3, -10], [0, 5, 4], [0, 155, 650]],
     });
 
     this._dusk = {
@@ -207,7 +212,8 @@ export class BishkekMapScene extends BaseScene {
   }
 
   update(dt, elapsed = this.elapsed) {
-    if (this.flagUniforms) this.flagUniforms.uTime.value = elapsed;
+    this.landmarks?.update(elapsed);
+    this.cityActivity?.update(elapsed, this._duskT);
     for (const { marker } of this.markers) marker.update(dt, elapsed);
     this.pulse?.update(elapsed, this._duskT);
   }
