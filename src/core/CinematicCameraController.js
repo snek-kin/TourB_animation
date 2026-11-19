@@ -21,6 +21,7 @@ export class CinematicCameraController {
     this._duration = 0;
     this._active = false;
     this._held = false;
+    this._paused = false;
     this._disposed = false;
   }
 
@@ -70,12 +71,13 @@ export class CinematicCameraController {
     this._duration = this._timeline.duration();
     this._active = true;
     this._held = false;
+    this._paused = false;
     this._apply();
     return this;
   }
 
   update(dt) {
-    if (this._active && dt > 0) {
+    if (this._active && !this._paused && dt > 0) {
       this._elapsed = Math.min(this._duration, this._elapsed + dt);
       this._timeline.time(this._elapsed);
       if (this._elapsed >= this._duration) {
@@ -102,16 +104,67 @@ export class CinematicCameraController {
     this._timeline?.kill();
     this._timeline = null;
     this._active = false;
+    this._paused = false;
     this._held = !release && this._state !== null;
     return hadAnimation;
   }
 
   release() { return this.cancel({ release: true }); }
 
+  pause() {
+    if (!this._active || this._paused) return false;
+    this._paused = true;
+    return true;
+  }
+
+  resume() {
+    if (!this._active || !this._paused) return false;
+    this._paused = false;
+    return true;
+  }
+
+  suspend() {
+    if (this._disposed) throw new Error('CinematicCameraController has been disposed');
+    const snapshot = {
+      timeline: this._timeline,
+      state: this._state,
+      elapsed: this._elapsed,
+      duration: this._duration,
+      active: this._active,
+      held: this._held,
+      paused: this._paused,
+    };
+    this._timeline?.pause();
+    this._timeline = null;
+    this._state = null;
+    this._elapsed = 0;
+    this._duration = 0;
+    this._active = false;
+    this._held = false;
+    this._paused = false;
+    return snapshot;
+  }
+
+  restore(snapshot) {
+    if (this._disposed) throw new Error('CinematicCameraController has been disposed');
+    if (!snapshot) return false;
+    this.release();
+    this._timeline = snapshot.timeline;
+    this._state = snapshot.state;
+    this._elapsed = snapshot.elapsed;
+    this._duration = snapshot.duration;
+    this._active = snapshot.active;
+    this._held = snapshot.held;
+    this._paused = snapshot.paused;
+    if (this._held || this._active) this._apply();
+    return true;
+  }
+
   getState() {
     return {
       active: this._active,
       held: this._held,
+      paused: this._paused,
       elapsed: this._elapsed,
       duration: this._duration,
       progress: this._duration ? this._elapsed / this._duration : 0,

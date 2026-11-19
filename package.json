@@ -7,7 +7,7 @@
   "scripts": {
     "serve": "npx --yes serve . -l 5173",
     "vendor": "node tools/vendor.mjs",
-    "test": "node tests/smoke.mjs && node tests/sequence-director.mjs",
+    "test": "node tests/smoke.mjs && node tests/sequence-director.mjs && node tests/storytelling.mjs",
     "assets:report": "node tools/assets-report.mjs",
     "audit:browser": "python tests/browser/audit.py",
     "audit:browser:node": "node tests/browser/prep-audit.cjs . --seconds 60",

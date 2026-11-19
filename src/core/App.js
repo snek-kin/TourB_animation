@@ -7,6 +7,7 @@ import { TransitionManager } from './TransitionManager.js';
 import { SceneManager } from './SceneManager.js';
 import { SequenceDirector } from './SequenceDirector.js';
 import { CinematicCameraController } from './CinematicCameraController.js';
+import { StorytellingEngine } from '../storytelling/StorytellingEngine.js';
 import { PerfMonitor } from './PerfMonitor.js';
 import { Hud } from '../ui/Hud.js';
 import { posthog } from '../posthog.js';
@@ -69,6 +70,7 @@ export class App {
     this.scenes = new SceneManager(this);
     this.cinematicCamera = new CinematicCameraController(this.cameraCtl);
     this.director = new SequenceDirector(this.scenes, { cameraController: this.cinematicCamera });
+    this.storytelling = new StorytellingEngine(this);
 
     if (this.params.has('q')) this._setQualityLevel(Number(this.params.get('q')) || 0);
     this.resize();
@@ -149,6 +151,7 @@ export class App {
     const stepped = this.director.ownsTimeline ? this.director.update(dt) : this.scenes.update(dt);
     this.cameraCtl.update(stepped);
     this.cinematicCamera.update(stepped);
+    this.storytelling?.update(dt);
     this.scenes.lateUpdate(stepped);
     const scene = this.scenes.current?.scene;
     if (scene) { this.renderer.render(scene, this.camera); this.perf.notePeak(); }
@@ -176,18 +179,23 @@ export class App {
       switch (e.code) {
         case 'Space':
           e.preventDefault();
-          if (this.director.active) this.director.pause();
+          if (this.storytelling?.story) {
+            if (this.storytelling.state === 'paused') this.storytelling.resume();
+            else this.storytelling.pause();
+          } else if (this.director.active) this.director.pause();
           else if (this.director.state === 'paused') this.director.resume();
           else this.scenes.togglePause();
           posthog?.capture('presentation_pause_toggled', { paused: this.scenes.paused });
           break;
         case 'ArrowRight':
-          if (this.director.active || this.director.state === 'paused') this.director.skip();
+          if (this.storytelling?.story) this.storytelling.next();
+          else if (this.director.active || this.director.state === 'paused') this.director.skip();
           else this.scenes.next();
           posthog?.capture('scene_navigation_requested', { direction: 'next' });
           break;
         case 'ArrowLeft':
-          if (this.director.active || this.director.state === 'paused') this.director.previous();
+          if (this.storytelling?.story) this.storytelling.previous();
+          else if (this.director.active || this.director.state === 'paused') this.director.previous();
           else this.scenes.prev();
           posthog?.capture('scene_navigation_requested', { direction: 'previous' });
           break;
@@ -214,6 +222,9 @@ export class App {
           posthog?.capture('fullscreen_toggled', { enabled });
           break;
         }
+        case 'Escape':
+          if (this.storytelling?.story) this.storytelling.stop();
+          break;
       }
     });
   }
@@ -247,6 +258,7 @@ export class App {
     for (const { target, type, listener, options } of this._listeners)
       target.removeEventListener(type, listener, options);
     this._listeners.length = 0;
+    this.storytelling?.dispose();
     this.director?.dispose();
     this.cinematicCamera?.dispose();
     this.scenes?.dispose();
