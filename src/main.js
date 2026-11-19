@@ -3,6 +3,7 @@ import { SandboxScene } from './scenes/SandboxScene.js';
 import { ValidationDigitalScene } from './scenes/ValidationDigitalScene.js';
 import { ValidationMapScene } from './scenes/ValidationMapScene.js';
 import { DigitalWorldScene } from './scenes/DigitalWorldScene.js';
+import { BishkekMapScene } from './scenes/BishkekMapScene.js';
 import { initializePostHog, presentationLogger } from './posthog.js';
 
 initializePostHog();
@@ -12,8 +13,8 @@ globalThis.tourb = app; // для отладки из консоли: tourb.scen
 
 try {
   await app.init();
-  // Технические стенды (НЕ сцены фильма; сцены фильма — data/timeline.js — добавляются в Phase 2+):
-  //   по умолчанию: валидационная пара val-digital → (dip) → val-map → (dip) → в начало;
+  // Технические стенды и первая производственная сцена:
+  //   по умолчанию: val-digital → digital → bishkek → val-map → (dip) → в начало;
   //   ?scene=sandbox — старый «всё в одном» стенд (худший случай по нагрузке).
   if (app.params.get('scene') === 'sandbox') {
     app.scenes.register({ id: 'sandbox', create: (a) => new SandboxScene(a), loop: true });
@@ -21,6 +22,7 @@ try {
    app.scenes
   .register({ id: 'val-digital', create: (a) => new ValidationDigitalScene(a), transition: 'dip' })
   .register({ id: 'digital', create: (a) => new DigitalWorldScene(a), transition: 'dip' })
+   .register({ id: 'bishkek', create: (a) => new BishkekMapScene(a), transition: 'dip' })
   .register({ id: 'val-map', create: (a) => new ValidationMapScene(a), transition: 'dip', loop: true });
   }
 

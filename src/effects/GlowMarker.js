@@ -57,6 +57,8 @@ export class GlowMarker extends THREE.Group {
     this.pin.position.y = this._height * v;
     this.visible = v > 0.001;
   }
-  update(dt) { this.uniforms.uTime.value += dt; }
+  update(dt, elapsed = null) {
+    this.uniforms.uTime.value = Number.isFinite(elapsed) ? elapsed : this.uniforms.uTime.value + dt;
+  }
   dispose() { this._beamMat.dispose(); this._discMat.dispose(); this._pinMat.dispose(); }
 }

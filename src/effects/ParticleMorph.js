@@ -101,8 +101,8 @@ export class ParticleMorph {
     this.points.geometry.setDrawRange(0, Math.floor(this.count * this.density));
   }
 
-  update(dt, camera, renderer) {
-    this.uniforms.uTime.value += dt;
+  update(dt, camera, renderer, elapsed = null) {
+    this.uniforms.uTime.value = Number.isFinite(elapsed) ? elapsed : this.uniforms.uTime.value + dt;
     this.uniforms.uScale.value = pointScale(camera, renderer, this._view);
     this.uniforms.uMaxPx.value = Math.min(this._view.height * 0.02, this._view.maxPoint);
     this.points.visible = this.uniforms.uOpacity.value > 0.01;
