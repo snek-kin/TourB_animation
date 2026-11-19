@@ -2,7 +2,7 @@
 // glow is additive geometry, consistent with the project's Phase 1 rendering policy.
 import * as THREE from 'three';
 import { rng } from '../../effects/util.js';
-const lin = (hex) => new THREE.Color(hex).convertSRGBToLinear();
+const lin = (hex) => new THREE.Color(hex);
 export function buildAtmosphere() {
   const skyU = {
     uOpacity: { value: 1 }, uDusk: { value: 0 },
@@ -46,7 +46,7 @@ export function buildAtmosphere() {
     uniforms: starU, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false,
     vertexShader: `void main(){ gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); gl_PointSize = 2.0; }`,
     fragmentShader: `uniform float uOpacity;
-      void main(){ float d = length(gl_PointCoord - 0.5); float a = smoothstep(0.5, 0.1, d) * uOpacity;
+      void main(){ float d = length(gl_PointCoord - 0.5); float a = (1.0 - smoothstep(0.1, 0.5, d)) * uOpacity;
         if (a < 0.01) discard; gl_FragColor = vec4(0.85, 0.9, 1.0, a);
         #include <colorspace_fragment> }`,
   }));

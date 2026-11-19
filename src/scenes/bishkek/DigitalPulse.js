@@ -9,7 +9,7 @@ const smooth = (a, b, x) => {
   const t = clamp01((x - a) / (b - a));
   return t * t * (3 - 2 * t);
 };
-const linearColor = (hex) => new THREE.Color(hex).convertSRGBToLinear();
+const linearColor = (hex) => new THREE.Color(hex);
 
 const EDGE_VERTEX = `
   attribute float aDist;

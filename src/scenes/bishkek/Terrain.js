@@ -39,8 +39,8 @@ export function buildTerrain(groundHeightAt) {
   geo.rotateX(-Math.PI / 2);
   const pos = geo.attributes.position;
   const colors = new Float32Array(pos.count * 3);
-  const steppe = new THREE.Color(0x5d6247).convertSRGBToLinear(), dry = new THREE.Color(0x7a7550).convertSRGBToLinear();
-  const rock = new THREE.Color(0x6e6a66).convertSRGBToLinear(), snow = new THREE.Color(0xeef3f8).convertSRGBToLinear();
+  const steppe = new THREE.Color(0x5d6247), dry = new THREE.Color(0x7a7550);
+  const rock = new THREE.Color(0x6e6a66), snow = new THREE.Color(0xeef3f8);
   const c = new THREE.Color();
   for (let i = 0; i < pos.count; i++) {
     const x = pos.getX(i) + CX, z = pos.getZ(i) + CZ;
